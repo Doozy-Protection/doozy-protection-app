@@ -1,3 +1,29 @@
-# This file stores configurations for your Shopify app.
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-scopes = "write_products"
+client_id = "244af45c5c8789b560f6928b556da2cf"
+name = "doozy-protection-app"
+handle = "doozy-protection-app"
+application_url = "https://bread-exam-seniors-magical.trycloudflare.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "remix-practice.myshopify.com"
+include_config_on_deploy = true
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_products,write_products,read_orders,write_orders"
+
+[auth]
+redirect_urls = [
+  "https://bread-exam-seniors-magical.trycloudflare.com/auth/callback",
+  "https://bread-exam-seniors-magical.trycloudflare.com/auth/shopify/callback",
+  "https://bread-exam-seniors-magical.trycloudflare.com/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2024-01"
+
+[pos]
+embedded = false

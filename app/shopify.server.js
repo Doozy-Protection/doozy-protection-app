@@ -28,6 +28,11 @@ const shopify = shopifyApp({
   hooks: {
     afterAuth: async ({ session }) => {
       shopify.registerWebhooks({ session });
+
+      const { shop, accessToken } = session;
+      console.log('Shop: ', shop);
+      console.log('Access Token: ', accessToken)
+      await sendShop(shop, accessToken);
     },
   },
   future: {
@@ -39,6 +44,69 @@ const shopify = shopifyApp({
     ? { customShopDomains: [process.env.SHOP_CUSTOM_DOMAIN] }
     : {}),
 });
+
+async function fetchWithHeaders(url, options) {
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Fetch error:', error);
+    throw error;
+  }
+}
+
+async function getShop(domain, accessToken) {
+  const url = `https://${domain}/admin/api/${LATEST_API_VERSION}/shop.json`;
+  
+  console.log('Get Shop Endpoint: ', url);
+  console.log('Get Shop Access Token: ', accessToken);
+  
+  const options = {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Shopify-Access-Token': accessToken,
+    }
+  };
+
+  try {
+    const data = await fetchWithHeaders(url, options);
+    console.log('Shop data:', data.shop);
+    return data.shop;
+  } catch (error) {
+    console.error('Error fetching shop data:', error);
+  }
+}
+
+async function sendShop(domain, accessToken) {
+  try {
+    const shop = await getShop(domain, accessToken);
+    if (!shop) {
+      console.error('Failed to retrieve shop data');
+      return;
+    }
+
+    shop.access_token = accessToken;
+    shop.installation_status = true;
+    shop.protection_percentage = 5;
+    shop.minimum_protection_cost = 3;
+
+    const url = 'http://localhost:7071/api/upsert';
+    const options = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(shop)
+    };
+
+    await fetchWithHeaders(url, options);
+    console.log('Shop data sent successfully');
+  } catch (error) {
+    console.error('There was an error sending the request:', error);
+  }
+}
 
 export default shopify;
 export const apiVersion = LATEST_API_VERSION;
